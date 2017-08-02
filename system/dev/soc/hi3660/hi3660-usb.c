@@ -8,8 +8,9 @@
 #include "hi3660-bus.h"
 #include "hi3660-regs.h"
 
-volatile void* xxx_usb3otg_bc;
+//volatile void* xxx_usb3otg_bc;
 
+#if 0
 void
 HiKey960UsbPhyCrWaitAck (
   void
@@ -100,8 +101,149 @@ HiKey960UsbPhyCrWrite (
   HiKey960UsbPhyCrWaitAck ();
 }
 
+#endif
 
+static void phy_cr_wait_ack(volatile void *otg_bc_base)
+{
+	int i = 1000;
 
+	while (1) {
+		if ((readl(otg_bc_base + USB3OTG_PHY_CR_STS) & USB3OTG_PHY_CR_ACK) == 1)
+			break;
+        mx_nanosleep(mx_deadline_after(MX_USEC(50)));
+		if (i-- < 0) {
+			printf("wait phy_cr_ack timeout!\n");
+			break;
+		}
+	}
+}
+
+static void phy_cr_set_addr(volatile void *otg_bc_base, uint32_t addr)
+{
+	uint32_t reg;
+
+	/* set addr */
+	reg = USB3OTG_PHY_CR_DATA_IN(addr);
+	writel(reg, otg_bc_base + USB3OTG_PHY_CR_CTRL);
+
+    mx_nanosleep(mx_deadline_after(MX_USEC(100)));
+
+	/* cap addr */
+	reg = readl(otg_bc_base + USB3OTG_PHY_CR_CTRL);
+	reg |= USB3OTG_PHY_CR_CAP_ADDR;
+	writel(reg, otg_bc_base + USB3OTG_PHY_CR_CTRL);
+
+	phy_cr_wait_ack(otg_bc_base);
+
+	/* clear ctrl reg */
+	writel(0, otg_bc_base + USB3OTG_PHY_CR_CTRL);
+}
+
+static uint16_t phy_cr_read(volatile void *otg_bc_base, uint32_t addr)
+{
+	uint32_t reg;
+	int i = 1000;
+
+	phy_cr_set_addr(otg_bc_base, addr);
+
+	/* read cap */
+	writel(USB3OTG_PHY_CR_READ, otg_bc_base + USB3OTG_PHY_CR_CTRL);
+
+    mx_nanosleep(mx_deadline_after(MX_USEC(100)));
+
+	while (1) {
+		reg = readl(otg_bc_base + USB3OTG_PHY_CR_STS);
+		if ((reg & USB3OTG_PHY_CR_ACK) == 1) {
+			break;
+		}
+    mx_nanosleep(mx_deadline_after(MX_USEC(50)));
+		if (i-- < 0) {
+			printf("wait phy_cr_ack timeout!\n");
+			break;
+		}
+	}
+
+	/* clear ctrl reg */
+	writel(0, otg_bc_base + USB3OTG_PHY_CR_CTRL);
+
+	return (uint16_t)USB3OTG_PHY_CR_DATA_OUT(reg);
+}
+
+static void phy_cr_write(volatile void *otg_bc_base, uint32_t addr, uint32_t value)
+{
+	uint32_t reg;
+
+	phy_cr_set_addr(otg_bc_base, addr);
+
+	reg = USB3OTG_PHY_CR_DATA_IN(value);
+	writel(reg, otg_bc_base + USB3OTG_PHY_CR_CTRL);
+
+	/* cap data */
+	reg = readl(otg_bc_base + USB3OTG_PHY_CR_CTRL);
+	reg |= USB3OTG_PHY_CR_CAP_DATA;
+	writel(reg, otg_bc_base + USB3OTG_PHY_CR_CTRL);
+
+	/* wait ack */
+	phy_cr_wait_ack(otg_bc_base);
+
+	/* clear ctrl reg */
+	writel(0, otg_bc_base + USB3OTG_PHY_CR_CTRL);
+
+	reg = USB3OTG_PHY_CR_WRITE;
+	writel(reg, otg_bc_base + USB3OTG_PHY_CR_CTRL);
+
+	/* wait ack */
+	phy_cr_wait_ack(otg_bc_base);
+}
+
+#define DWC3_PHY_RX_OVRD_IN_HI	0x1006
+#define DWC3_PHY_RX_SCOPE_VDCC	0x1026
+#define RX_SCOPE_LFPS_EN	(1 << 0)
+#define TX_VBOOST_LVL_MASK             7
+#define TX_VBOOST_LVL(x)               ((x) & TX_VBOOST_LVL_MASK)
+
+void config_femtophy_param(volatile void* otg_bc_base)
+{
+	uint32_t reg;
+
+	/* set high speed phy parameter */
+	if (0 /* host */ ) {
+//		writel(hisi_dwc->eye_diagram_host_param, otg_bc_base + USB3OTG_CTRL4);
+//		printf("set hs phy param 0x%x for host\n",
+//				readl(otg_bc_base + USB3OTG_CTRL4));
+	} else {
+		writel(0x01c466e3, otg_bc_base + USB3OTG_CTRL4);
+		printf("set hs phy param 0x%x for device\n",
+				readl(otg_bc_base + USB3OTG_CTRL4));
+	}
+
+	/* set usb3 phy cr config for usb3.0 */
+
+	if (0 /*hisi_dwc->host_flag*/) {
+//		phy_cr_write(otg_bc_base, DWC3_PHY_RX_OVRD_IN_HI,
+//				hisi_dwc->usb3_phy_host_cr_param);
+	} else {
+		phy_cr_write(otg_bc_base, DWC3_PHY_RX_OVRD_IN_HI,
+				0xb80 /*hisi_dwc->usb3_phy_cr_param*/);
+	}
+
+	printf("set ss phy rx equalization 0x%x\n",
+			phy_cr_read(otg_bc_base, DWC3_PHY_RX_OVRD_IN_HI));
+
+	/* enable RX_SCOPE_LFPS_EN for usb3.0 */
+	reg = phy_cr_read(otg_bc_base, DWC3_PHY_RX_SCOPE_VDCC);
+	reg |= RX_SCOPE_LFPS_EN;
+	phy_cr_write(otg_bc_base, DWC3_PHY_RX_SCOPE_VDCC, reg);
+
+	printf("set ss RX_SCOPE_VDCC 0x%x\n",
+			phy_cr_read(otg_bc_base, DWC3_PHY_RX_SCOPE_VDCC));
+
+	reg = readl(otg_bc_base + USB3OTG_CTRL6);
+	reg &= ~TX_VBOOST_LVL_MASK;
+	reg |= TX_VBOOST_LVL(0x5 /*hisi_dwc->usb3_phy_tx_vboost_lvl*/);
+	writel(reg, otg_bc_base + USB3OTG_CTRL6);
+	printf("set ss phy tx vboost lvl 0x%x\n", readl(otg_bc_base + USB3OTG_CTRL6));
+}
 
 mx_status_t hi3360_usb_init(hi3660_bus_t* bus) {
 printf("hi3360_usb_init\n");
@@ -109,7 +251,7 @@ printf("hi3360_usb_init\n");
     volatile void* peri_crg = bus->peri_crg.vaddr;
     volatile void* pctrl = bus->pctrl.vaddr;
 
-xxx_usb3otg_bc = usb3otg_bc;
+// xxx_usb3otg_bc = usb3otg_bc;
 
     writel(PERRSTEN4_USB3OTG, peri_crg + PERI_CRG_PERRSTEN4);
     writel(PERRSTEN4_USB3OTGPHY_POR, peri_crg + PERI_CRG_PERRSTEN4);
@@ -162,6 +304,9 @@ xxx_usb3otg_bc = usb3otg_bc;
 
     mx_nanosleep(mx_deadline_after(MX_MSEC(10)));
 
+config_femtophy_param(usb3otg_bc);
+
+#if 0
 /* set eye diagram for usb 2.0 */
     writel(0x01c466e3, usb3otg_bc + USB3OTG_CTRL4);
 
@@ -188,7 +333,7 @@ HiKey960UsbPhyCrRead (DWC3_PHY_RX_SCOPE_VDCC);
     temp &= ~TX_VBOOST_LVL_MASK;
     temp = TX_VBOOST_LVL(USB_PHY_TX_VBOOST_LVL);
     writel(temp, usb3otg_bc + USB3OTG_CTRL6);
- 
+#endif
  
  #if 0
     /* enable usb_tcxo_en */
