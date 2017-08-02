@@ -55,28 +55,28 @@
 #define GT_CLK_USB3PHY_REF                      (1 << 2)
 
 // BC registers
-#define USBOTG3_CTRL0       0x00
-#define USBOTG3_CTRL1       0x04
-#define USBOTG3_CTRL2       0x08
-#define USBOTG3_CTRL3       0x0C
-#define USBOTG3_CTRL4       0x10
-#define USBOTG3_CTRL5       0x14
-#define USBOTG3_CTRL6       0x18
-#define USBOTG3_CTRL7       0x1C
-#define USBOTG3_STS0        0x20
-#define USBOTG3_STS1        0x24
-#define USBOTG3_STS2        0x28
-#define USBOTG3_STS3        0x2C
+#define USB3OTG_CTRL0       0x00
+#define USB3OTG_CTRL1       0x04
+#define USB3OTG_CTRL2       0x08
+#define USB3OTG_CTRL3       0x0C
+#define USB3OTG_CTRL4       0x10
+#define USB3OTG_CTRL5       0x14
+#define USB3OTG_CTRL6       0x18
+#define USB3OTG_CTRL7       0x1C
+#define USB3OTG_STS0        0x20
+#define USB3OTG_STS1        0x24
+#define USB3OTG_STS2        0x28
+#define USB3OTG_STS3        0x2C
 #define BC_CTRL0            0x30
 #define BC_CTRL1            0x34
 #define BC_CTRL2            0x38
 #define BC_STS0             0x3C
 #define RAM_CTRL            0x40
-#define USBOTG3_STS4        0x44
+#define USB3OTG_STS4        0x44
 #define USB3PHY_CTRL        0x48
 #define USB3PHY_STS         0x4C
-#define USB3PHY_CR_STS      0x50
-#define USB3PHY_CR_CTRL     0x54
+#define USB3OTG_PHY_CR_STS  0x50
+#define USB3OTG_PHY_CR_CTRL 0x54
 #define USB3_RES            0x58
 
 

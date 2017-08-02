@@ -27,10 +27,10 @@ enum {
 };
 
 void dwc3_wait_bits(volatile uint32_t* ptr, uint32_t bits, uint32_t expected) {
-    uint32_t value = readl(ptr);
+    uint32_t value = DWC3_READ32(ptr);
     while ((value & bits) != expected) {
         usleep(1000);
-        value = readl(ptr);
+        value = DWC3_READ32(ptr);
     }
 }
 
@@ -38,25 +38,79 @@ static mx_status_t dwc3_start(dwc3_t* dwc) {
 printf("dwc3_start\n");
     volatile void* mmio = dwc3_mmio(dwc);
 
-    // set device mode
-    uint32_t temp = readl(mmio + GCTL);
-    temp &= ~GCTL_PRTCAPDIR_MASK;
-    temp |= GCTL_PRTCAPDIR_HOST;
-    writel(temp, mmio + GCTL);
-
-    temp = readl(mmio + DCTL);
+    uint32_t temp = DWC3_READ32(mmio + DCTL);
+    temp &= ~DCTL_RUN_STOP;
     temp |= DCTL_CSFTRST;
-    writel(temp, mmio + DCTL);
+    DWC3_WRITE32(mmio + DCTL, temp);
     dwc3_wait_bits(mmio + DCTL, DCTL_CSFTRST, 0);
 
-    dwc3_events_start(dwc);
+#if 0
+    // set device mode
+    uint32_t temp = DWC3_READ32(mmio + GCTL);
+    temp &= ~GCTL_PRTCAPDIR_MASK;
+    temp |= GCTL_PRTCAPDIR_HOST;
+    DWC3_WRITE32(mmio + GCTL, temp);
+#else
+    DWC3_WRITE32(mmio + GCTL, GCTL_U2EXIT_LFPS | GCTL_PRTCAPDIR_DEVICE | GCTL_U2RSTECN | GCTL_PWRDNSCALE(2));
+#endif
 
+/*
+  // set TX FIFO size 
+  Addr = TX_FIFO_ADDR;
+  DwUsb3SetFifoSize (Addr, RAM_TX0_DEPTH / RAM_WIDTH, FIFO_DIR_TX, 0);
+  Addr += RAM_TX0_DEPTH / RAM_WIDTH;
+  DwUsb3SetFifoSize (Addr, RAM_TX1_DEPTH / RAM_WIDTH, FIFO_DIR_TX, 1);
+  // set RX FIFO size 
+  DwUsb3SetFifoSize (RX_FIFO_ADDR, RAM_RX_DEPTH / RAM_WIDTH, FIFO_DIR_RX, 0);
+
+  // init event buf 
+  MmioWrite32 (GEVNTADRL(0), (UINT32)(UINTN)gEventBuf);
+  MmioWrite32 (GEVNTADRH(0), (UINTN)gEventBuf >> 32);
+  MmioWrite32 (GEVNTSIZ(0), DWUSB3_EVENT_BUF_SIZE << 2);
+  MmioWrite32 (GEVNTCOUNT(0), 0);
+*/
+
+    temp = DWC3_READ32(mmio + DCFG);
+    uint32_t nump = 16;
+    uint32_t max_speed = DCFG_DEVSPD_SUPER;
+    temp &= ~DWC3_MASK(DCFG_NUMP_START, DCFG_NUMP_BITS);
+    temp |= nump << DCFG_NUMP_START;
+    temp &= ~DWC3_MASK(DCFG_DEVSPD_START, DCFG_DEVSPD_BITS);
+    temp |= max_speed << DCFG_DEVSPD_START;
+    temp &= ~DWC3_MASK(DCFG_DEVADDR_START, DCFG_DEVADDR_BITS);  // clear address
+    DWC3_WRITE32(mmio + DCFG, temp);
+    
+    // configure and enable PHYs
+    temp = DWC3_READ32(mmio + GUSB3PIPECTL(0));
+    temp &= ~(GUSB3PIPECTL_DELAYP1TRANS | GUSB3PIPECTL_SUSPENDENABLE);
+    temp |= GUSB3PIPECTL_LFPSFILTER | GUSB3PIPECTL_SS_TX_DE_EMPHASIS(1);
+    DWC3_WRITE32(mmio + GUSB3PIPECTL(0), temp);
+
+    temp = DWC3_READ32(mmio + GUSB2PHYCFG(0));
+    temp &= ~(GUSB2PHYCFG_USBTRDTIM_MASK | GUSB2PHYCFG_SUSPENDUSB20);
+    temp |= GUSB2PHYCFG_USBTRDTIM(9);
+    DWC3_WRITE32(mmio + GUSB2PHYCFG(0), temp);
+
+    uint32_t enable = DEVTEN_LDMEVTEN | DEVTEN_L1WKUPEVTEN | DEVTEN_STOP_ON_DISCONNECT_EN |
+                      DEVTEN_VENDEVTSTRCVDEN | DEVTEN_ERRTICERREVTEN | DEVTEN_L1SUSPEN |
+                      DEVTEN_SOFTEVTEN | DEVTEN_U3_L2_SUSP_EN | DEVTEN_HIBERNATION_REQ_EVT_EN |
+                      DEVTEN_WKUPEVTEN | DEVTEN_ULSTCNGEN | DEVTEN_CONNECTDONEEVTEN | 
+                      DEVTEN_USBRSTEVTEN | DEVTEN_DISSCONNEVTEN;
+
+    DWC3_WRITE32(mmio + DEVTEN, enable);
+
+    dwc3_events_start(dwc);
+    
     // start the controller
     DWC3_WRITE32(mmio + DCTL, DCTL_RUN_STOP);
 
-    printf("global registers:\n");
+    temp = DWC3_READ32(mmio + DCTL);
+    temp |= DCTL_RUN_STOP;
+    DWC3_WRITE32(mmio + DCTL, temp);
+
+    printf("global registers after start:\n");
     hexdump((void *)mmio + GSBUSCFG0, 256);
-    printf("device registers:\n");
+    printf("device registers after start:\n");
     hexdump((void *)mmio + DCFG, 256);
 
     return MX_OK;

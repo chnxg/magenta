@@ -6,6 +6,7 @@
 #include "dwc3-regs.h"
 
 #include <stdio.h>
+#include <unistd.h>
 
 #define EVENT_BUFFER_SIZE   PAGE_SIZE
 
@@ -20,6 +21,7 @@ printf("dwc_irq_thread start\n");
     uint32_t* ring_end = (void *)ring_start + EVENT_BUFFER_SIZE;
    
     while (1) {
+/*
         mx_status_t status = mx_interrupt_wait(dwc->irq_handle);
         if (status != MX_OK) {
             printf("mx_interrupt_wait returned %d\n", status);
@@ -28,8 +30,10 @@ printf("dwc_irq_thread start\n");
         }
         mx_interrupt_complete(dwc->irq_handle);
         printf("dwc_irq_thread got interrupt\n");
+*/
+sleep(1);
 
-        uint32_t event_count = DWC3_READ32(GEVNTCOUNT(0)) & GEVNTCOUNT_EVNTCOUNT_MASK;
+        uint32_t event_count = DWC3_READ32(mmio + GEVNTCOUNT(0)) & GEVNTCOUNT_EVNTCOUNT_MASK;
         if (event_count > 0) {
             for (unsigned i = 0; i < event_count; i++) {
                 uint32_t event = *ring_cur++;

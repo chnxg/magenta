@@ -11,9 +11,9 @@ static uint32_t dwc3_ep_cmd(dwc3_t* dwc, unsigned ep_num, uint32_t command, uint
                                uint32_t param1, uint32_t param2) {
     volatile void* mmio = dwc3_mmio(dwc);
 
-    DWC3_WRITE32(mmio + DEPCMDPAR0(ep_num), param0);
-    DWC3_WRITE32(mmio + DEPCMDPAR1(ep_num), param1);
     DWC3_WRITE32(mmio + DEPCMDPAR2(ep_num), param2);
+    DWC3_WRITE32(mmio + DEPCMDPAR1(ep_num), param1);
+    DWC3_WRITE32(mmio + DEPCMDPAR0(ep_num), param0);
 
     volatile void* depcmd = mmio + DEPCMD(ep_num);
     DWC3_WRITE32(depcmd, command);

@@ -90,6 +90,7 @@
 #define GRXTHRCFG           0xc10c              // Global Rx Threshold Control Register
 
 #define GCTL                0xc110              // Global Core Control Register
+#define GCTL_PWRDNSCALE(n)      (((n) & 0x1fff) << 19)
 #define GCTL_PWRDNSCALE_START   19
 #define GCTL_PWRDNSCALE_BITS    13
 #define GCTL_MASTERFILTBYPASS   (1 << 18)
@@ -155,10 +156,57 @@
 #define GSYSBLKWINCTRL      0xc1b0              // System Bus Blocking Window Control
 //#defineGUSB3RMMICTL(n)      varies
 #define GUSB2PHYCFG(n)      (0xc200 + 4 * (n))  // Global USB2 PHY Configuration Register
+#define GUSB2PHYCFG_PHYSOFTRST                  (1 << 31)
+#define GUSB2PHYCFG_ULPI_LPM_WITH_OPMODE_CHK    (1 << 29)
+#define GUSB2PHYCFG_HSIC_CON_WIDTH_ADJ(n)       (((n) & 0x3) << 27)
+#define GUSB2PHYCFG_INV_SEL_HSIC                (1 << 26)
+#define GUSB2PHYCFG_LSTRD(n)                    (((n) & 0x7) << 22)
+#define GUSB2PHYCFG_LSIPD(n)                    (((n) & 0x7) << 19)
+#define GUSB2PHYCFG_ULPIEXTVBUSINDICATOR        (1 << 18)
+#define GUSB2PHYCFG_ULPIEXTVBUSDRV              (1 << 17)
+#define GUSB2PHYCFG_ULPIAUTORES                 (1 << 15)
+#define GUSB2PHYCFG_USBTRDTIM(n)                (((n) & 0xf) << 10)
+#define GUSB2PHYCFG_USBTRDTIM_MASK              (0xf << 10)
+#define GUSB2PHYCFG_XCVRDLY                     (1 << 9)
+#define GUSB2PHYCFG_ENBLSLPM                    (1 << 8)
+#define GUSB2PHYCFG_PHYSEL                      (1 << 7)
+#define GUSB2PHYCFG_SUSPENDUSB20                (1 << 6)
+#define GUSB2PHYCFG_FSINTF                      (1 << 5)
+#define GUSB2PHYCFG_ULPI_UTMI_SEL               (1 << 4)
+#define GUSB2PHYCFG_PHYIF                       (1 << 3)
+#define GUSB2PHYCFG_TOUTCAL(n)                  (((n) & 0x7) << 0)
+
 #define GUSB2I2CCTL(n)      (0xc240 + 4 * (n))  // Reserved Register
 #define GUSB2PHYACC_UTMI(n) (0xc280 + 4 * (n))  // Global USB 2.0 UTMI PHY Vendor Control Register
 #define GUSB2PHYACC_ULPI(n) (0xc280 + 4 * (n))  // Global USB 2.0 UTMI PHY Vendor Control Register
-#define GUSB3PIPECTL(n)     (0xc2c0 + 4 * (n))  // Global USB 3.1 PIPE Control Register
+
+#define GUSB3PIPECTL(n)     (0xc2c0 + 4 * (n))      // Global USB 3.1 PIPE Control Register
+#define GUSB3PIPECTL_PHY_SOFT_RST               (1 << 31)   // USB3 PHY Soft Reset
+#define GUSB3PIPECTL_HST_PRT_CMPL               (1 << 30)
+#define GUSB3PIPECTL_DIS_RX_DET_P3              (1 << 28)
+#define GUSB3PIPECTL_UX_EXIT_IN_PX              (1 << 27)
+#define GUSB3PIPECTL_PING_ENHANCE_EN            (1 << 26)
+#define GUSB3PIPECTL_U1U2_EXIT_FAIL_TO_RECOV    (1 << 25)
+#define GUSB3PIPECTL_REQUEST_P1P2P3             (1 << 24)
+#define GUSB3PIPECTL_START_RX_DET_U3_RX_DET     (1 << 23)
+#define GUSB3PIPECTL_DIS_RX_DET_U3_RX_DET       (1 << 22)
+#define GUSB3PIPECTL_DELAY_P1P2P3(n)            (((n) & 0x7) << 19)
+#define GUSB3PIPECTL_DELAYP1TRANS               (1 << 18)
+#define GUSB3PIPECTL_SUSPENDENABLE              (1 << 17)
+#define GUSB3PIPECTL_DATWIDTH(n)                (((n) & 0x3) << 15)
+#define GUSB3PIPECTL_ABORT_RX_DET_IN_U2         (1 << 14)
+#define GUSB3PIPECTL_SKIP_RX_DET                (1 << 13)
+#define GUSB3PIPECTL_LFPS_P0_ALGN               (1 << 12)
+#define GUSB3PIPECTL_P3P2_TRAN_OK               (1 << 11)
+#define GUSB3PIPECTL_P3_EX_SIG_P3               (1 << 10)
+#define GUSB3PIPECTL_LFPSFILTER                 (1 << 9)
+#define GUSB3PIPECTL_RX_DETECT_TO_POLLING_LFPS_CONTROL (1 << 8)
+#define GUSB3PIPECTL_SSIC_EN                    (1 << 7)
+#define GUSB3PIPECTL_TX_SWING                   (1 << 6)
+#define GUSB3PIPECTL_TX_MARGIN(n)               (((n) & 0x7) << 3)
+#define GUSB3PIPECTL_SS_TX_DE_EMPHASIS(n)       (((n) & 0x3) << 1)
+#define GUSB3PIPECTL_ELASTIC_BUFFER_MODE        (1 << 0)
+
 #define GTXFIFOSIZ(n)       (0xc300 + 0x7c * (n))   // Global Transmit FIFO Size Register
 #define GRXFIFOSIZ(n)       (0xc380 + 0x7c * (n))   // Global Receive FIFO Size Register
 #define GEVNTADR(n)         (0xc400 + 0x10 * (n))   // Global Event Buffer Address Register
@@ -199,6 +247,10 @@
 #define DCFG_DEVADDR_BITS               7
 #define DCFG_DEVSPD_START               0
 #define DCFG_DEVSPD_BITS                3
+#define DCFG_DEVSPD_HIGH                0
+#define DCFG_DEVSPD_FULL                1
+#define DCFG_DEVSPD_LOW                 2
+#define DCFG_DEVSPD_SUPER               4
 
 #define DCTL                            0xc704      // Device Control Register
 #define DCTL_RUN_STOP                   (1 << 31)
