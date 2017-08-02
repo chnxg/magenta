@@ -99,9 +99,7 @@ static usb_hci_protocol_ops_t virtual_host_protocol = {
 };
 
 static void virt_host_iotxn_queue(void* ctx, iotxn_t* txn) {
-    printf("virt_host_iotxn_queue\n");
     usb_virtual_host_t* host = ctx;
-
     iotxn_queue(host->bus->mxdev, txn);
 }
 

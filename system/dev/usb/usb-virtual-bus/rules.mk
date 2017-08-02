@@ -22,4 +22,6 @@ MODULE_LIBS := \
     system/ulib/magenta \
     system/ulib/c
 
+USER_MANIFEST_LINES += ums-virt-test.sh=$(LOCAL_DIR)/ums-virt-test.sh
+
 include make/module.mk

@@ -75,9 +75,7 @@ printf("device_open\n");
 }
 
 static void virt_device_iotxn_queue(void* ctx, iotxn_t* txn) {
-    printf("virt_device_iotxn_queue\n");
     usb_virtual_device_t* device = ctx;
-
     iotxn_queue(device->bus->mxdev, txn);
 }
 

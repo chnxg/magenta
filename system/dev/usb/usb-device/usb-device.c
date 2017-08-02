@@ -53,7 +53,6 @@ typedef struct usb_device {
 #define IN_EP_START     17
 #define IN_EP_END       31
 
-
 static void usb_function_iotxn_queue(void* ctx, iotxn_t* txn) {
     usb_function_t* function = ctx;
     // pass down to the DCI driver
@@ -382,7 +381,6 @@ static mx_status_t usb_dev_set_device_desc(usb_device_t* dev, const void* in_buf
 }
 
 static mx_status_t usb_dev_set_string_desc(usb_device_t* dev, const void* in_buf, size_t in_len) {
-printf("usb_dev_set_string_desc %zu\n", in_len);
     if (in_len < sizeof(usb_device_string_t) + 1) {
         return MX_ERR_INVALID_ARGS;
     }
@@ -492,7 +490,6 @@ static mx_status_t usb_dev_clear_functions(usb_device_t* dev) {
 
 static mx_status_t usb_dev_ioctl(void* ctx, uint32_t op, const void* in_buf, size_t in_len,
                                  void* out_buf, size_t out_len, size_t* out_actual) {
-    printf("usb_dev_ioctl %x\n", op);
     usb_device_t* dev = ctx;
 
     switch (op) {

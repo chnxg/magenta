@@ -20,6 +20,9 @@ typedef struct {
 
     list_node_t host_txns[USB_MAX_EPS];
     list_node_t device_txns[USB_MAX_EPS];
+    // offset into host_txns[i], for dealing with host txns that are bigger than
+    // their matching device txn
+    mx_off_t txn_offsets[USB_MAX_EPS];
 
     mtx_t lock;
     completion_t completion;
