@@ -14,11 +14,11 @@ static int dwc_irq_thread(void* arg) {
     volatile void* mmio = dwc3_mmio(dwc);
 
 printf("dwc_irq_thread start\n");
-/*
+
     uint32_t* ring_start = io_buffer_virt(&dwc->event_buffer);
     uint32_t* ring_cur = ring_start;
     uint32_t* ring_end = (void *)ring_start + EVENT_BUFFER_SIZE;
- */   
+   
     while (1) {
         mx_status_t status = mx_interrupt_wait(dwc->irq_handle);
         if (status != MX_OK) {
@@ -31,7 +31,13 @@ printf("dwc_irq_thread start\n");
 
         uint32_t event_count = DWC3_READ32(GEVNTCOUNT(0)) & GEVNTCOUNT_EVNTCOUNT_MASK;
         if (event_count > 0) {
-            
+            for (unsigned i = 0; i < event_count; i++) {
+                uint32_t event = *ring_cur++;
+                if (ring_cur == ring_end) {
+                    ring_cur = ring_start;
+                }
+                printf("dwc_irq_thread: got event 0x%08X\n", event);
+            }
         
             DWC3_WRITE32(mmio + GEVNTCOUNT(0), event_count);    
         }

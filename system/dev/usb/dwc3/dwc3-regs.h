@@ -311,7 +311,7 @@
 #define DEPCFG_EBC_NO_WRITE_BACK        (1 << 14)   // Don't write back HWO bit to the TRB descriptor
 #define DEPCFG_STREAM_EVT_EN            (1 << 13)
 #define DEPCFG_XFER_NOT_READY_EN        (1 << 10)
-#define DEPCFG_XFER_PROGRESS_EN         (1 << 9)
+#define DEPCFG_XFER_IN_PROGRESS_EN      (1 << 9)
 #define DEPCFG_XFER_COMPLETE_EN         (1 << 8)
 #define DEPCFG_INTR_NUM(n)              (((n) & 0x1f) << 0)
 

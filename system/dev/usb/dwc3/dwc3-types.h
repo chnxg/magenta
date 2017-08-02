@@ -20,6 +20,7 @@ typedef volatile struct {
 // TRB status fields
 #define TRB_BUFSIZ_START    0           // Buffer Size
 #define TRB_BUFSIZ_BITS     24
+#define TRB_BUFSIZ(n)       (((n) & 0xffffff) << 0)
 #define TRB_PCM1_START      24          // Packet Count M1
 #define TRB_PCM1_BITS       2
 #define TRB_SPR             (1 << 26)   // Short Packet Received

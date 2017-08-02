@@ -34,16 +34,19 @@ mx_status_t dwc3_cmd_ep_config_init(dwc3_t* dwc, unsigned ep_num, unsigned fifo_
     uint32_t param0 = DEPCFG_ACTION_INITIALIZE | DEPCFG_FIFO_NUM(fifo_num) |
                       DEPCFG_MAX_PACKET_SIZE(max_packet_size) | DEPCFG_EP_TYPE(ep_type);
     uint32_t param1 = DEPCFG_EP_NUMBER(ep_num) | DEPCFG_INTERVAL(interval) |
-                      DEPCFG_XFER_NOT_READY_EN | DEPCFG_XFER_COMPLETE_EN |
-                      DEPCFG_INTR_NUM(0);
+                      DEPCFG_XFER_NOT_READY_EN | DEPCFG_XFER_IN_PROGRESS_EN |
+                      DEPCFG_XFER_COMPLETE_EN | DEPCFG_INTR_NUM(0);
     
     dwc3_ep_cmd(dwc, ep_num, DEPCFG, param0, param1, 0);
     return MX_OK;
 }
 
 mx_status_t dwc3_cmd_ep_transfer_config(dwc3_t* dwc, unsigned ep_num) {
-
-     
     dwc3_ep_cmd(dwc, ep_num, DEPXFERCFG, 1, 0, 0);
+    return MX_OK;
+}
+
+mx_status_t dwc3_cmd_ep_start_transfer(dwc3_t* dwc, unsigned ep_num, mx_paddr_t trb_phys) {
+    dwc3_ep_cmd(dwc, ep_num, DEPSTRTXFER, trb_phys & 0xFFFFFFFF, trb_phys >> 32, 0);
     return MX_OK;
 }

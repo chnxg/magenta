@@ -44,6 +44,7 @@ mx_status_t dwc3_cmd_start_config(dwc3_t* dwc, unsigned ep_num, unsigned resourc
 mx_status_t dwc3_cmd_ep_config_init(dwc3_t* dwc, unsigned ep_num, unsigned fifo_num,
                                     unsigned ep_type, unsigned max_packet_size, unsigned interval);
 mx_status_t dwc3_cmd_ep_transfer_config(dwc3_t* dwc, unsigned ep_num);
+mx_status_t dwc3_cmd_ep_start_transfer(dwc3_t* dwc, unsigned ep_num, mx_paddr_t trb_phys);
 
 // Endpoints
 mx_status_t dwc3_ep_init(dwc3_t* dwc, unsigned ep_num);
